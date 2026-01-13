@@ -12,9 +12,10 @@ import { useIsPetRegistered } from "@common/hook/useIsPetRegistered";
 import Divider from "@common/component/Divider/Divider";
 import { Modal } from "@common/component/Modal/Modal";
 import FloatingBtn from "@common/component/FloatingBtn/Floating";
-import Image from "next/image";
 import no_review from "@asset/image/no_review.png";
 import { Button } from "@common/component/Button";
+import LazyImage from "@common/component/LazyImage";
+import LoginModal from "@common/component/LoginModal/LoginModal";
 
 interface ReviewSummaryItem {
   id?: number;
@@ -33,8 +34,7 @@ const RecentView = ({ hospitalId }: RecentViewProps) => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteHospitalReviews(hospitalId);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteHospitalReviews(hospitalId);
 
   useEffect(() => {
     const element = loadMoreRef.current;
@@ -60,10 +60,13 @@ const RecentView = ({ hospitalId }: RecentViewProps) => {
     };
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
-  const handleProfileClick = (memberId: number) => {
-    if (memberId) {
-      router.push(`${PATH.ONBOARDING.ROOT}`);
+  const handleProfileClick = (nickname: string | undefined) => {
+    if (!nickname) return;
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
     }
+    router.push(`${PATH.PROFILE.ROOT}/?nickname=${nickname}`);
   };
 
   const handleHospitalDetailClick = () => {
@@ -105,9 +108,7 @@ const RecentView = ({ hospitalId }: RecentViewProps) => {
       <div className={styles.headerRow}>
         <div className={styles.headerLeft}>
           <span className={styles.recentViewTitle}>최근 많이 본 리뷰</span>
-          {totalReviewCount > 0 && (
-            <span className={styles.reviewCount}>+{totalReviewCount}</span>
-          )}
+          {totalReviewCount > 0 && <span className={styles.reviewCount}>+{totalReviewCount}</span>}
         </div>
         {totalReviewCount > 0 && (
           <button className={styles.headerMore} onClick={handleMoreClick}>
@@ -119,73 +120,55 @@ const RecentView = ({ hospitalId }: RecentViewProps) => {
       <div>
         {reviews.length > 0 ? (
           <>
-            {reviews.map(
-              (
-                review: components["schemas"]["HospitalReviewResponse"],
-                index: number
-              ) => (
-                <div
-                  key={review.id}
-                  onClick={() =>
-                    !isAuthenticated && index >= 3 && handleLoginClick()
-                  }
-                >
-                  <HospitalReview
-                    handleProfileClick={() =>
-                      review.memberId && handleProfileClick(review.memberId)
-                    }
-                    handleHospitalDetailClick={handleHospitalDetailClick}
-                    reviewData={{
-                      id: review.id ?? 0,
-                      memberId: review.memberId ?? 0,
-                      nickname: review.nickname ?? "",
-                      breed: review.memberBreed ?? "",
-                      memberBreed: review.memberBreed ?? "",
-                      age: review.age ?? 0,
-                      disease: review.disease ?? "",
-                      visitedAt: review.visitedAt ?? "",
-                      hospitalId: review.hospitalId ?? 0,
-                      hospitalName: review.hospitalName ?? "",
-                      hospitalAddress: review.hospitalAddress ?? "",
-                      content: review.content ?? "",
-                      visitPurpose: review.visitPurpose ?? "",
-                      reviewSummary: {
-                        goodReviews: review.reviewSummary?.goodReviews ?? [],
-                        badReviews: review.reviewSummary?.badReviews ?? [],
-                      },
-                      images: review.images ?? [],
-                      symptoms: review.symptoms ?? [],
-                      animal: review.animal ?? "",
-                      gender: review.gender || "M",
-                      weight: review.weight ?? 0,
-                    }}
-                    isBlurred={!isAuthenticated && index >= 3}
-                  />
-                  {index < reviews.length - 1 && <Divider size="small" />}
-                </div>
-              )
-            )}
-            {hasNextPage && (
-              <div ref={loadMoreRef} style={{ height: "10px" }} />
-            )}
+            {reviews.map((review: components["schemas"]["HospitalReviewResponse"], index: number) => (
+              <div key={review.id} onClick={() => !isAuthenticated && index >= 3 && handleLoginClick()}>
+                <HospitalReview
+                  handleProfileClick={() => handleProfileClick(review.nickname)}
+                  handleHospitalDetailClick={handleHospitalDetailClick}
+                  reviewData={{
+                    id: review.id ?? 0,
+                    memberId: review.memberId ?? 0,
+                    nickname: review.nickname ?? "",
+                    breed: review.memberBreed ?? "",
+                    memberBreed: review.memberBreed ?? "",
+                    age: review.age ?? 0,
+                    disease: review.disease ?? "",
+                    visitedAt: review.visitedAt ?? "",
+                    hospitalId: review.hospitalId ?? 0,
+                    hospitalName: review.hospitalName ?? "",
+                    hospitalAddress: review.hospitalAddress ?? "",
+                    content: review.content ?? "",
+                    visitPurpose: review.visitPurpose ?? "",
+                    reviewSummary: {
+                      goodReviews: review.reviewSummary?.goodReviews ?? [],
+                      badReviews: review.reviewSummary?.badReviews ?? [],
+                    },
+                    images: review.images ?? [],
+                    symptoms: review.symptoms ?? [],
+                    animal: review.animal ?? "",
+                    gender: review.gender || "M",
+                    weight: review.weight ?? 0,
+                  }}
+                  isBlurred={!isAuthenticated && index >= 3}
+                />
+                {index < reviews.length - 1 && <Divider size="small" />}
+              </div>
+            ))}
+            {hasNextPage && <div ref={loadMoreRef} style={{ height: "10px" }} />}
           </>
         ) : (
           <div className={styles.noReviewContainer}>
             <div className={styles.imageContainer}>
-              <Image
+              <LazyImage
                 src={no_review}
                 alt="리뷰 없음"
-                width={127}
-                height={127}
+                width="12.7rem"
+                height="12.7rem"
                 style={{ objectFit: "contain" }}
               />
             </div>
             <p className={styles.noReviewText}>리뷰가 아직 없어요</p>
-            <Button
-              size="large"
-              onClick={handleFloatingBtnClick}
-              label="리뷰 작성하기"
-            />
+            <Button size="large" onClick={handleFloatingBtnClick} label="리뷰 작성하기" />
           </div>
         )}
       </div>
@@ -201,22 +184,7 @@ const RecentView = ({ hospitalId }: RecentViewProps) => {
         </div>
       )}
 
-      <Modal.Root open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
-        <Modal.Content
-          title={<Modal.Title>로그인이 필요해요.</Modal.Title>}
-          bottomAffix={
-            <Modal.BottomAffix>
-              <Modal.Close label={"취소"} />
-              <Modal.Confirm
-                label={"로그인"}
-                onClick={() => router.push(PATH.LOGIN)}
-              />
-            </Modal.BottomAffix>
-          }
-        >
-          코코스를 더 잘 즐기기 위해 로그인을 해주세요.
-        </Modal.Content>
-      </Modal.Root>
+      <LoginModal isOpen={isLoginModalOpen} setIsOpen={setIsLoginModalOpen} />
     </div>
   );
 };

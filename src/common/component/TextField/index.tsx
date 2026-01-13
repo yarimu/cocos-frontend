@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { iconstyle, InputVariants, styles, WrapVariants } from "@common/component/TextField/styles.css.ts";
+import {
+  iconstyle,
+  InputVariants,
+  leftIconStyle,
+  styles,
+  WrapVariants,
+} from "@common/component/TextField/styles.css.ts";
 import { IcClear } from "@asset/svg";
 
 interface TextFieldProps {
@@ -20,6 +26,7 @@ interface TextFieldProps {
   maxLength?: number; // input 입력 가능길이
   mentionedNickname?: string; // 언급된 닉네임
   readOnly?: boolean;
+  className?: string;
 }
 
 type propsType = WrapVariants & TextFieldProps & InputVariants;
@@ -59,13 +66,14 @@ export const TextField = React.forwardRef<HTMLInputElement, propsType>(
       maxLength,
       mentionedNickname,
       readOnly,
+      className,
     },
     ref,
   ) => {
     return (
-      <div className={styles.wrapper({ state, active })} onClick={onClick}>
+      <div className={`${styles.wrapper({ state, active })} ${className ?? ""}`} onClick={onClick}>
         <div className={styles.leftWrap()}>
-          {leftIcon && <p className={iconstyle}>{leftIcon}</p>}
+          {leftIcon && <p className={leftIconStyle}>{leftIcon}</p>}
           <span className={styles.mention}>{mentionedNickname}</span>
           <input
             ref={ref}
@@ -83,7 +91,7 @@ export const TextField = React.forwardRef<HTMLInputElement, propsType>(
           />
         </div>
         {value && isDelete ? (
-          <button onClick={onClearClick}>
+          <button onClick={onClearClick} className={iconstyle}>
             <IcClear height={20} width={20} />
           </button>
         ) : (

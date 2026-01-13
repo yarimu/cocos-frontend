@@ -7,7 +7,6 @@ import * as styles from "./style.css";
 import { TextField } from "@common/component/TextField";
 import { useGetMemberInfo } from "@api/domain/mypage/hook";
 import banner from "@asset/image/banner.png";
-import Image from "next/image";
 import HospitalList from "./_components/hospitalList/hospitalList";
 import { NAV_CONTENT } from "@common/component/Nav/constant";
 import Nav from "@common/component/Nav/Nav";
@@ -20,6 +19,8 @@ import { useAuth } from "@providers/AuthProvider";
 import { useIsPetRegistered } from "@common/hook/useIsPetRegistered";
 import { Modal } from "@common/component/Modal/Modal.tsx";
 import { useGetReviewAgreementStatus } from "@api/domain/review/agree/hook";
+import LazyImage from "@common/component/LazyImage";
+import LoginModal from "@common/component/LoginModal/LoginModal";
 
 interface Location {
   id: number;
@@ -80,7 +81,7 @@ export default function ReviewPage() {
   };
 
   return (
-    <div>
+    <div className={styles.pageWrapper}>
       <LocationHeader onLocationChange={handleLocationChange} onBottomSheetOpenChange={setIsLocationSheetOpen} />
 
       <div className={styles.reviewContainer}>
@@ -117,7 +118,7 @@ export default function ReviewPage() {
                   </div>
                 ))}
               </div>
-              <Image src={banner} alt="banner" className={styles.bannerContainer} />
+              <LazyImage src={banner} alt="banner" className={styles.bannerContainer} width="100%" height="10rem" />
             </div>
             <p className={styles.hospitalListText}>믿고 찾는 인기 병원</p>
             <HospitalList
@@ -137,19 +138,7 @@ export default function ReviewPage() {
         </div>
       </div>
 
-      <Modal.Root open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
-        <Modal.Content
-          title={<Modal.Title>로그인이 필요해요.</Modal.Title>}
-          bottomAffix={
-            <Modal.BottomAffix>
-              <Modal.Close label={"취소"} />
-              <Modal.Confirm label={"로그인"} onClick={() => router.push(PATH.LOGIN)} />
-            </Modal.BottomAffix>
-          }
-        >
-          코코스를 더 잘 즐기기 위해 로그인을 해주세요.
-        </Modal.Content>
-      </Modal.Root>
+      <LoginModal isOpen={isLoginModalOpen} setIsOpen={setIsLoginModalOpen} />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { IcBaseProfileImage } from "@asset/svg";
 import {
   info,
@@ -7,6 +6,8 @@ import {
   profileContainer,
   profileImage,
 } from "@app/community/_component/Profile/Profile.css.ts";
+import LazyImage from "@common/component/LazyImage";
+import { formatTime } from "@shared/util/formatTime.ts";
 
 interface propsType {
   handleProfileClick?: () => void;
@@ -22,14 +23,14 @@ const Profile = (props: propsType) => {
   return (
     <div className={profileContainer} onClick={handleProfileClick}>
       {profileImageData ? (
-        <Image src={profileImageData} alt="userProfile" className={profileImage} width={32} height={32} />
+        <LazyImage src={profileImageData} alt="userProfile" className={profileImage} width="3.2rem" height="3.2rem" />
       ) : (
         <IcBaseProfileImage width={32} height={32} />
       )}
       <div className={info}>
         <div className={infoName}>{nickname}</div>
         <div className={infoDetail}>
-          {breed}·{petAge}살 · {createdAt}
+          {breed}·{petAge}살 · {formatTime(createdAt)}
         </div>
       </div>
     </div>
